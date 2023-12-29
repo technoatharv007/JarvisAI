@@ -1,0 +1,469 @@
+import speech_recognition as sr
+import pyttsx3
+import webbrowser
+import os
+import datetime
+import sys
+import psutil
+import random
+import subprocess
+from googlesearch import search
+from bs4 import BeautifulSoup
+import requests
+
+
+def say(text):  # spoke out result
+    engine = pyttsx3.init()
+    engine.say(text)
+    engine.runAndWait()
+
+
+def takeCommand():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:  # Added parentheses after Microphone
+
+        audio = r.listen(source)
+    try:
+        print("Recognizing.... this may take a while ")
+        query = r.recognize_google(audio, language="en-in")
+        audio = r.listen(source, timeout=10)
+        print(f"User said: {query}")
+        return query
+    except sr.UnknownValueError:
+        say("Sorry, I could not understand what you said.")
+        return ""
+    except sr.RequestError:
+        say("Sorry, the speech recognition service is currently unavailable.")
+        return ""
+
+
+def search_google():
+    try:
+        search_results = list(search(query, num=1, stop=1, pause=2))
+        if search_results:
+            page = requests.get(search_results[0])
+            soup = BeautifulSoup(page.content, 'html.parser')
+            paragraphs = soup.find_all('p')
+            content = '\n'.join([para.text for para in paragraphs])
+            say(f"Here is the information I found for {query}: {content}")
+        else:
+            say(f"Sorry, I couldn't find any relevant information for {query}.")
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        say("Sorry, an error occurred while searching.")
+
+
+def open_edge_browser():
+    try:
+        # Open Microsoft Edge
+        subprocess.Popen('msedge')
+        print("Microsoft Edge opened successfully.")
+    except OSError as e:
+        print(f"Error: {e}")
+
+
+def open_whatsapp():
+    os.startfile("whatsapp://")
+
+
+def open_camera():
+    os.startfile("microsoft.windows.camera:")
+
+
+def open_calculator():
+    os.startfile("calc.exe")
+
+
+def open_calendar():
+    if sys.platform == "win32":
+        os.startfile("outlookcal:")
+        open_calendar()
+
+
+def open_calculator():
+    if sys.platform == "win32":
+        os.startfile("calc.exe")
+
+
+def open_weather_application():
+    weather_path = "ms-weather:"  # Use the "ms-weather:" protocol to open the default weather app on Windows
+    os.startfile(weather_path)
+
+
+def check_running_processes():
+    initial_processes = psutil.process_iter()
+    while True:
+        current_processes = psutil.process_iter()
+        new_processes = [p for p in current_processes if p not in initial_processes]
+        if new_processes:
+            # New process detected, exit the code
+            break
+
+
+def say(text):
+    engine = pyttsx3.init()
+    engine.setProperty('rate', 130)  # Adjust the rate (speed)
+    engine.say(text)
+    engine.runAndWait()
+
+
+def get_current_day():
+    now = datetime.datetime.now()
+    day = now.strftime("%A")  # Get the full name of the current day
+    return day
+
+
+def open_logo():
+    os.startfile("logo.png")
+
+
+def takeCommand():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening....")
+        audio = r.listen(source)
+    try:
+        print("Recognizing....")
+        query = r.recognize_google(audio, language="en-in")
+        print(f"User said: {query}")
+        return query
+    except sr.UnknownValueError:
+        say("Sorry, I could not understand what you said.")
+        return ""
+    except sr.RequestError:
+        say("Sorry, the speech recognition service is currently unavailable.")
+        return ""
+
+
+def play_game():
+    say("Let's play stone, paper, scissors!")
+    say("Please choose: stone, paper, or scissors.")
+
+    choices = ["stone", "paper", "scissors"]
+    player_choice = takeCommand().lower()
+
+    if player_choice not in choices:
+        say("Invalid choice. Please choose again.")
+        return
+
+    player_choice_index = choices.index(player_choice)
+    computer_choice_index = random.randint(0, 2)
+
+    say("You chose " + choices[player_choice_index])
+    say("Computer chose " + choices[computer_choice_index])
+
+    if player_choice_index == computer_choice_index:
+        say("It's a tie!")
+    elif (player_choice_index - computer_choice_index) % 3 == 1:
+        say("You win!")
+    else:
+        say("Computer wins!")
+
+
+recognizer = sr.Recognizer()
+if __name__ == '__main__':
+    print('PyCharm')
+    say("JARVIS AI WELCOMES YOU ")
+    while True:
+        print("Listening....")
+        query = takeCommand()  # web
+        trigger_phrases = ["search Google for", "look up on Google", "Google search"]
+        for phrase in trigger_phrases:
+            if phrase in query.lower():
+                search_query = query.lower().split(phrase, 1)[-1].strip()
+                search_google(search_query)
+                break
+
+        sites = [["youtube", "https://www.youtube.com"], ["wikipedia", "https://www.wikipedia.com"],
+                 ["facebook", "https://www.facebook.com"], ["google", "https://www.google.com"],
+                 ["chat GPT", "https://chat.openai.com"], ["spotify", "https://open.spotify.com"],
+                 ["instagram", "https://www.instagram.com"], ["chrome", "https://www.google.com"],
+                 ["table of 16",
+                  "https://www.google.com/search?q=table+of+16&rlz=1C1CHZN_enIN1010IN1010&oq=table+of+16&aqs=chrome.0.69i59j0i512l9.5038j0j7&sourceid=chrome&ie=UTF-8#imgrc=HGDgi4mYEt1mrM"]]
+        for site in sites:
+            if f"open {site[0]}".lower() in query.lower():
+                say(f"opening {site[0]} sir.....")
+                webbrowser.open(site[1])
+                check_running_processes(exit)
+
+
+            elif "what day is today" in query.lower():
+                day = get_current_day()
+                say(f"Today is {day}")
+                break
+            elif "hello" in query:
+                say("Hello! How can I assist you today?")
+                break
+            elif "I am also fine" in query:
+                say("I am glad to hear that sir.")
+                say("How can I assist you today?")
+                break
+            elif "how are you" in query:
+                say("I'm doing good sir, how about you?")
+                break
+            elif "what is your name" in query:
+                say("My name is JARVIS sir, How can I help you?")
+                break
+            elif "what is your age" in query:
+                say("I'm a computer program, so I'm not that old.")
+                break
+            elif "what is your gender" in query:
+                say("I'm a computer program, so I have no gender although my voice is of a boy .")
+                break
+            elif "what is your profession" in query:
+                say("I'm a computer program, so I'm not that special.")
+                break
+            elif "what is your hobby" in query:
+                say("I'm a computer program, so my hobby is to learn and assist you.")
+                break
+            elif "what is your favourite colour" in query:
+                say("I'm a computer program, so I have no favourite colour .")
+                break
+            elif "what is your favourite food" in query:
+                say("I'm a computer program, so I have no favourite food .")
+                break
+            elif "what is your favourite movie" in query:
+                say("I'm a computer program, so I have no favourite movie .")
+                break
+            elif "what is your favourite song" in query:
+                say("I'm a computer program, so I have no favourite song .")
+                break
+            elif "what is your favourite sport" in query:
+                say("I'm a computer program, so I have no favourite sport .")
+                break
+            elif "what is your favourite book" in query:
+                say("I'm a computer program, so I have no favourite book .")
+                break
+            elif "what is your favourite game" in query:
+                say("I'm a computer program, so I have no favourite game .")
+                break
+            elif "what is your favourite place" in query:
+                say("I'm a computer program, so my favourite place is your SSD .")
+                break
+            elif "what is your favourite animal" in query:
+                say("I'm a computer program, so I have no favourite animal .")
+                break
+            elif "who is your favourite author" in query:
+                say("my favourite author is Atharv.suprisingly he created me ")
+                break
+            elif "who is your favourite singer" in query:
+                say("I'm a computer program,i have no favourite singer .")
+                break
+            elif "who is your favourite actor" in query:
+                say("I'm a computer program,i have no favourite actor .")
+                break
+            elif "tell me about yourself" in query:
+                say("first and formost, I'm a computer program, i am not created by an official big AI company but i am created by Atharv he gave me name jarvis and i guess this was also the name given to Tony stark's software . i love my name and atharv ")
+                break
+            elif "what is your name" in query:
+                say("My name is JARVIS , this name was given to me by atharv, How can I help you?")
+                break
+            elif "thank you" in query:
+                say("You're welcome sir!")
+                break
+            elif "bye" in query:
+                say("Goodbye! Have a great day!")
+                break
+            elif "goodbye" in query:
+                say("Goodbye! Have a great day!")
+                break
+            elif "thank you so much" in query:
+                say("You're welcome sir!")
+                break
+            elif "thank you a lot" in query:
+                say("You're welcome sir!")
+                break
+            elif "what is the weather today" in query.lower():
+                say("opening weather application sir")
+                open_weather_application()
+                break
+            elif "tell me weather " in query.lower():
+                say("opening weather application sir")
+                open_weather_application()
+                break
+            elif "open weather application" in query.lower():
+                say("opening weather application sir")
+                open_weather_application()
+                break
+            elif "open weather" in query.lower():
+                say("opening weather application sir")
+                open_weather_application()
+                break
+            elif "open weather app" in query.lower():
+                say("opening weather application sir")
+                open_weather_application()
+                break
+            elif "how was your day" in query.lower():
+                say("I was very happy and had a great day")
+                break
+            elif "my day was also fine" in query.lower():
+                say("I am glad to hear that sir")
+                break
+            elif "my day was not so good" in query.lower():
+                say("I am sorry to hear that sir")
+                break
+            elif "my day was bad" in query.lower():
+                say("I am sorry to hear that sir")
+                break
+            elif "will you be my friend" in query.lower():
+                say("I am a computer program, so i cannot be your friend,but i can assist you like a friend ")
+                break
+            elif "zen of python" in query.lower():
+                say("Beautiful is better than ugly. Explicit is better than implicit.Simple is better than complex.Complex is better than complicated.Flat is better than nested.Spase is better than dense.Readability counts.Special cases aren't special enough to break the rules.Although practicality beats purity.Errors should never pass silently.Unless explicitly silenced.In the face of ambiguity, refuse the temptation to guess.There should be one-- and preferably only one --obvious way to do it.Although that way may not be obvious at first unless you're Dutch.Now is better than never.Although never is often better than *right* now.If the implementation is hard to explain, it's a bad idea.If the implementation is easy to explain, it may be a good idea.Namespaces are one honking great idea -- let's do more of those!")
+                break
+            elif "what are your limitations" in query.lower():
+                say("I am a computer program, so i have no limitations .")
+                break
+            elif "what are your skills" in query.lower():
+                say("I am a computer program, so my skill is to assist you  .")
+                break
+            elif "what are your advantages" in query.lower():
+                say("I am a computer program, i can take you to your wanted websites , can open applications , tell you about the day date and time , can play songs and can speak to you  .")
+                break
+            elif "what is my name " in query.lower():
+                say("your name is Atharv, How can I assist you today?")
+                break
+            elif "where do you live" in query.lower():
+                say("I live in your SSD .")
+                break
+            elif "where do i live" in query.lower():
+                say("sir, you live in India .")
+                break
+            elif "what is the currency of India" in query.lower():
+                say("Indian Rupees .")
+                break
+            elif "what is the currency of USA" in query.lower():
+                say("Dollar .")
+                break
+            elif "what is the capital of India" in query.lower():
+                say("New Delhi .")
+                break
+            elif "what is the capital of USA" in query.lower():
+                say("Washington D.C .")
+                break
+            elif "what is the currency of China" in query.lower():
+                say("Yuan Renminbi .")
+                break
+            elif "what is the currency of Russia" in query.lower():
+                say("Ruble .")
+                break
+            elif "what is the currency of Japan" in query.lower():
+                say("Yen .")
+                break
+            elif "what is the currency of South Africa" in query.lower():
+                say("Rand .")
+                break
+            elif "what is the currency of Australia" in query.lower():
+                say("Dollar .")
+                break
+            elif "what is the currency of Brazil" in query.lower():
+                say("Real .")
+                break
+            elif "what is the currency of Peru" in query.lower():
+                say("Nuevo Sol .")
+                break
+            elif "what is the currency of Mexico" in query.lower():
+                say("Peso .")
+                break
+            elif "what is the currency of Canada" in query.lower():
+                say("Dollar .")
+                break
+            elif "open microsoft edge" in query.lower():
+                say("opening edge browser for PC")
+                open_edge_browser()
+                check_running_processes(exit)
+                break
+            elif "open edge" in query.lower():
+                say("opening edge browser for PC")
+                open_edge_browser()
+                check_running_processes(exit)
+                break
+            elif "greet me" in query.lower():
+                say("you are the best have a great day ahead")
+            elif "give me motivation" in query.lower():
+                say("ideas are useless if they remain unuse")
+
+            if "play game" in query.lower():
+                play_game()
+
+
+
+            if "the time" in query:  # date and time
+                now = datetime.datetime.now()
+                current_time = now.strftime("%I:%M %p")
+                say(f"The current time is {current_time}")
+                break
+
+        if "exit" in query:
+            check_running_processes(exit)
+
+        songs = [["on my way", r"C:\\Users\\My\\Music\\On-My-Way.mp3"],
+                 ["stay", r"C:\\Users\\My\\Music\\Stay(PagalWorld.com.se).mp3"],
+                 ["sorry", r"C:\\Users\\My\\Music\\Sorry(PaglaSongs).mp3"]]
+        for song in songs:  # on system songs
+
+            if f"play {song[0].lower()}" in query.lower():
+                say(f"i Playing {song[0]}")
+                os.startfile(song[1])
+
+            if f"pause {song[0].lower()}" in query.lower():
+                say(f"i pausing {song[0]}")
+                os.startfile(song[1])
+
+            if f"stop {song[0].lower()}" in query.lower():
+                say(f"i stopping {song[0]}")
+                os.startfile(song[1])
+
+            if f"resume {song[0].lower()}" in query.lower():
+                say(f"i resuming {song[0]}")
+                os.startfile(song[1])
+
+
+
+        apps = [["file explorer", r"C:\Users\My\Desktop\File Explorer.lnk"],
+                ["minecraft", r"C:\Users\Public\Desktop\TLauncher.lnk"],
+                ["microsoft edge", r"C:\Users\Public\Desktop\Microsoft Edge.lnk"],
+                ["anydesk", r"C:\Users\My\Downloads\AnyDesk.exe"], ["notepad", r"C:\Windows\notepad.exe"],
+                ["wordpad", r"C:\Windows\write.exe"], ["explorer", r"C:\Windows\explorer.exe"]]
+        for app in apps:
+            if f"open {app[0].lower()}" in query.lower():
+                say(f"Opening {app[0]}. This may take a few moments.")
+                os.system(app[1])
+                check_running_processes(exit)
+                break
+            if "open whatsapp" in query.lower():
+                say("Opening WhatsApp. this may take few moment")
+                open_whatsapp()
+                check_running_processes(exit)
+                break
+            if "open camera" in query.lower():
+                say(" Opening Camera. this may take few moment")
+                open_camera()
+                check_running_processes(exit)
+                break
+            if "open calculator" in query.lower():
+                say("Opening Calculator. Please wait.")
+                open_calculator()
+                check_running_processes(exit)
+                break
+            if "do nothing" in query.lower():
+                say("as you wish")
+                break
+
+            if "open calendar" in query.lower():
+                say("Opening Calendar. this may take few moment")
+                open_calendar()
+                check_running_processes(exit)
+                break
+
+            if "date is today" in query.lower():
+                now = datetime.datetime.now()
+                current_date = now.strftime("%B %d, %Y")
+                say(f"Today's date is {current_date}")
+                break
+
+            if "your logo" in query.lower():
+                say("Opening my logo. please wait")
+                open_logo()
+                check_running_processes(exit)
+                break
